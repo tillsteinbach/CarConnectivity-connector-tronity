@@ -108,6 +108,7 @@ class Connector(BaseConnector):
             interval = self.config['interval']
             if interval < 60:
                 raise ValueError('Intervall must be at least 60 seconds')
+        self.interval._set_value(value=timedelta(seconds=interval))
         self.max_age: int = interval - 1
 
         if client_id is None or client_secret is None:
