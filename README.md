@@ -38,4 +38,4 @@ In your carconnectivity.json configuration add a section for the tronity connect
 }
 ```
 
-<img src="https://github.com/tillsteinbach/CarConnectivity-connector-tronity/blob/main/screenshots/tronity1.png" width="400"><img src="https://github.com/tillsteinbach/CarConnectivity-connector-tronity/blob/main/screenshots/tronity2.png" width="600">
+<img src="https://raw.githubusercontent.com/tillsteinbach/CarConnectivity-connector-tronity/main/screenshots/tronity1.png" width="400"><img src="https://raw.githubusercontent.com/tillsteinbach/CarConnectivity-connector-tronity/main/screenshots/tronity2.png" width="600">
