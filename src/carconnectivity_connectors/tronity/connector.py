@@ -406,6 +406,9 @@ class Connector(BaseConnector):
     def get_version(self) -> str:
         return __version__
 
+    def get_type(self) -> str:
+        return "carconnectivity-connector-tronity"
+
     def __on_charging_start_stop(self, start_stop_command: ChargingStartStopCommand, command_arguments: Union[str, Dict[str, Any]]) \
             -> Union[str, Dict[str, Any]]:
         if start_stop_command.parent is None or start_stop_command.parent.parent is None \
