@@ -53,8 +53,8 @@ class Connector(BaseConnector):
         self._background_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
 
-        self.connected: BooleanAttribute = BooleanAttribute(name="connected", parent=self)
-        self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self)
+        self.connected: BooleanAttribute = BooleanAttribute(name="connected", parent=self, tags={'connector_custom'})
+        self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self, tags={'connector_custom'})
         self.commands: Commands = Commands(parent=self)
 
         # Configure logging

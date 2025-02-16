@@ -23,7 +23,7 @@ class TronityVehicle(GenericVehicle):  # pylint: disable=too-many-instance-attri
             self.tronity_id.parent = self
         else:
             super().__init__(vin=vin, garage=garage, managing_connector=managing_connector)
-            self.tronity_id: StringAttribute = StringAttribute(name='tronity_id', parent=self)
+            self.tronity_id: StringAttribute = StringAttribute(name='tronity_id', parent=self, tags={'connector_custom'})
 
 
 class TronityElectricVehicle(ElectricVehicle, TronityVehicle):
