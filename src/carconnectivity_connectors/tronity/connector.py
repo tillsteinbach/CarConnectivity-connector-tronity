@@ -12,7 +12,7 @@ import requests
 
 from carconnectivity.garage import Garage
 from carconnectivity.errors import AuthenticationError, TooManyRequestsError, RetrievalError, APIError, APICompatibilityError, \
-    TemporaryAuthenticationError, ConfigurationError, CommandError
+    TemporaryAuthenticationError, CommandError
 from carconnectivity.util import robust_time_parse, log_extra_keys, config_remove_credentials
 from carconnectivity.drive import ElectricDrive, GenericDrive
 from carconnectivity.units import Power, Length
@@ -48,7 +48,7 @@ class Connector(BaseConnector):
         max_age (Optional[int]): Maximum age for cached data in seconds.
     """
     def __init__(self, connector_id: str, car_connectivity: CarConnectivity, config: Dict) -> None:
-        BaseConnector.__init__(self, connector_id=connector_id, car_connectivity=car_connectivity, config=config)
+        BaseConnector.__init__(self, connector_id=connector_id, car_connectivity=car_connectivity, config=config, log=LOG, api_log=LOG_API)
 
         self._background_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -57,65 +57,50 @@ class Connector(BaseConnector):
         self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self, tags={'connector_custom'})
         self.commands: Commands = Commands(parent=self)
 
-        # Configure logging
-        if 'log_level' in config and config['log_level'] is not None:
-            config['log_level'] = config['log_level'].upper()
-            if config['log_level'] in logging._nameToLevel:
-                LOG.setLevel(config['log_level'])
-                self.log_level._set_value(config['log_level'])  # pylint: disable=protected-access
-                logging.getLogger('requests').setLevel(config['log_level'])
-                logging.getLogger('urllib3').setLevel(config['log_level'])
-                logging.getLogger('oauthlib').setLevel(config['log_level'])
-            else:
-                raise ConfigurationError(f'Invalid log level: "{config["log_level"]}" not in {list(logging._nameToLevel.keys())}')
-        if 'api_log_level' in config and config['api_log_level'] is not None:
-            config['api_log_level'] = config['api_log_level'].upper()
-            if config['api_log_level'] in logging._nameToLevel:
-                LOG_API.setLevel(config['api_log_level'])
-            else:
-                raise ConfigurationError(f'Invalid log level: "{config["log_level"]}" not in {list(logging._nameToLevel.keys())}')
-        LOG.info("Loading tronity connector with config %s", config_remove_credentials(self.config))
+        LOG.info("Loading tronity connector with config %s", config_remove_credentials(config))
 
-        client_id: Optional[str] = None
-        client_secret: Optional[str] = None
-        if 'client_id' in self.config and 'client_secret' in self.config:
-            client_id = self.config['client_id']
-            client_secret = self.config['client_secret']
+        self.active_config['client_id'] = None
+        self.active_config['client_secret'] = None
+        if 'client_id' in config and 'client_secret' in config:
+            self.active_config['client_id'] = config['client_id']
+            self.active_config['client_secret'] = config['client_secret']
         else:
-            if 'netrc' in self.config:
-                netrc_filename: str = self.config['netrc']
+            if 'netrc' in config:
+                self.active_config['netrc'] = config['netrc']
             else:
-                netrc_filename = os.path.join(os.path.expanduser("~"), ".netrc")
+                self.active_config['netrc'] = os.path.join(os.path.expanduser("~"), ".netrc")
             try:
-                secrets = netrc.netrc(file=netrc_filename)
+                secrets = netrc.netrc(file=self.active_config['netrc'])
                 secret: tuple[str, str, str] | None = secrets.authenticators("Tronity")
                 if secret is None:
-                    raise AuthenticationError(f'Authentication using {netrc_filename} failed: volkswagen not found in netrc')
-                client_id, _, client_secret = secret
+                    raise AuthenticationError(f'Authentication using {self.active_config['netrc']} failed: volkswagen not found in netrc')
+                self.active_config['client_id'], _, self.active_config['client_secret'] = secret
 
             except netrc.NetrcParseError as err:
-                LOG.error('Authentification using %s failed: %s', netrc_filename, err)
-                raise AuthenticationError(f'Authentication using {netrc_filename} failed: {err}') from err
+                LOG.error('Authentification using %s failed: %s', self.active_config['netrc'], err)
+                raise AuthenticationError(f'Authentication using {self.active_config['netrc']} failed: {err}') from err
             except TypeError as err:
-                if 'client_id' not in self.config:
-                    raise AuthenticationError(f'"Tronity" entry was not found in {netrc_filename} netrc-file.'
+                if 'client_id' not in config:
+                    raise AuthenticationError(f'"Tronity" entry was not found in {self.active_config['netrc']} netrc-file.'
                                               ' Create it or provide client_id and client_secret in config') from err
             except FileNotFoundError as err:
-                raise AuthenticationError(f'{netrc_filename} netrc-file was not found. Create it or provide client_id and client_secret in config') from err
+                raise AuthenticationError(f'{self.active_config['netrc']} netrc-file was not found. Create it or provide client_id'
+                                          ' and client_secret in config') from err
 
-        interval: int = 180
-        if 'interval' in self.config:
-            interval = self.config['interval']
-            if interval < 60:
+        self.active_config['interval'] = 180
+        if 'interval' in config:
+            self.active_config['interval'] = config['interval']
+            if self.active_config['interval'] < 60:
                 raise ValueError('Intervall must be at least 60 seconds')
-        self.interval._set_value(value=timedelta(seconds=interval))
-        self.max_age: int = interval - 1
+        self.interval._set_value(value=timedelta(seconds=self.active_config['interval']))
+        self.active_config['max_age'] = self.active_config['interval'] - 1
 
-        if client_id is None or client_secret is None:
+        if self.active_config['client_id'] is None or self.active_config['client_secret'] is None:
             raise AuthenticationError('client_id or client_secret not provided')
 
         self._manager: SessionManager = SessionManager(tokenstore=car_connectivity.get_tokenstore(), cache=car_connectivity.get_cache())
-        session: requests.Session = self._manager.get_session(Service.TRONITY, SessionCredentials(client_id=client_id, client_secret=client_secret))
+        session: requests.Session = self._manager.get_session(Service.TRONITY, SessionCredentials(client_id=self.active_config['client_id'],
+                                                                                                  client_secret=self.active_config['client_secret']))
         if not isinstance(session, TronitySession):
             raise AuthenticationError('Could not create session')
         self.session: TronitySession = session
