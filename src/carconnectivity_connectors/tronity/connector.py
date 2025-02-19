@@ -73,18 +73,18 @@ class Connector(BaseConnector):
                 secrets = netrc.netrc(file=self.active_config['netrc'])
                 secret: tuple[str, str, str] | None = secrets.authenticators("Tronity")
                 if secret is None:
-                    raise AuthenticationError(f'Authentication using {self.active_config['netrc']} failed: volkswagen not found in netrc')
+                    raise AuthenticationError(f'Authentication using {self.active_config["netrc"]} failed: volkswagen not found in netrc')
                 self.active_config['client_id'], _, self.active_config['client_secret'] = secret
 
             except netrc.NetrcParseError as err:
                 LOG.error('Authentification using %s failed: %s', self.active_config['netrc'], err)
-                raise AuthenticationError(f'Authentication using {self.active_config['netrc']} failed: {err}') from err
+                raise AuthenticationError(f'Authentication using {self.active_config["netrc"]} failed: {err}') from err
             except TypeError as err:
                 if 'client_id' not in config:
                     raise AuthenticationError(f'"Tronity" entry was not found in {self.active_config['netrc']} netrc-file.'
                                               ' Create it or provide client_id and client_secret in config') from err
             except FileNotFoundError as err:
-                raise AuthenticationError(f'{self.active_config['netrc']} netrc-file was not found. Create it or provide client_id'
+                raise AuthenticationError(f'{self.active_config["netrc"]} netrc-file was not found. Create it or provide client_id'
                                           ' and client_secret in config') from err
 
         self.active_config['interval'] = 180
