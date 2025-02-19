@@ -81,7 +81,7 @@ class Connector(BaseConnector):
                 raise AuthenticationError(f'Authentication using {self.active_config["netrc"]} failed: {err}') from err
             except TypeError as err:
                 if 'client_id' not in config:
-                    raise AuthenticationError(f'"Tronity" entry was not found in {self.active_config['netrc']} netrc-file.'
+                    raise AuthenticationError(f'"Tronity" entry was not found in {self.active_config["netrc"]} netrc-file.'
                                               ' Create it or provide client_id and client_secret in config') from err
             except FileNotFoundError as err:
                 raise AuthenticationError(f'{self.active_config["netrc"]} netrc-file was not found. Create it or provide client_id'
