@@ -17,7 +17,7 @@ from carconnectivity.util import robust_time_parse, log_extra_keys, config_remov
 from carconnectivity.drive import ElectricDrive, GenericDrive
 from carconnectivity.units import Power, Length
 from carconnectivity.charging import ChargingConnector, Charging
-from carconnectivity.attributes import BooleanAttribute, DurationAttribute
+from carconnectivity.attributes import BooleanAttribute, DurationAttribute, GenericAttribute
 from carconnectivity.commands import Commands
 from carconnectivity.command_impl import ChargingStartStopCommand
 
@@ -55,6 +55,16 @@ class Connector(BaseConnector):
 
         self.connected: BooleanAttribute = BooleanAttribute(name="connected", parent=self, tags={'connector_custom'})
         self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self, tags={'connector_custom'})
+
+        def __check_interval(attribute: GenericAttribute, value: Any) -> Any:
+            del attribute
+            if value is not None and value < timedelta(seconds=180):
+                raise ValueError('Intervall must be at least 180 seconds')
+            return value
+
+        self.interval._is_changeable = True  # pylint: disable=protected-access
+        self.interval._add_on_set_hook(__check_interval)  # pylint: disable=protected-access
+
         self.commands: Commands = Commands(parent=self)
 
         LOG.info("Loading tronity connector with config %s", config_remove_credentials(config))
