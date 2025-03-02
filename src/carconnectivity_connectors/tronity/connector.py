@@ -18,9 +18,10 @@ from carconnectivity.util import robust_time_parse, log_extra_keys, config_remov
 from carconnectivity.drive import ElectricDrive, GenericDrive
 from carconnectivity.units import Power, Length
 from carconnectivity.charging import ChargingConnector, Charging
-from carconnectivity.attributes import BooleanAttribute, DurationAttribute, GenericAttribute
+from carconnectivity.attributes import BooleanAttribute, DurationAttribute, GenericAttribute, EnumAttribute
 from carconnectivity.commands import Commands
 from carconnectivity.command_impl import ChargingStartStopCommand
+from carconnectivity.enums import ConnectionState
 
 from carconnectivity_connectors.base.connector import BaseConnector
 from carconnectivity_connectors.tronity.vehicle import TronityElectricVehicle
@@ -50,12 +51,12 @@ class Connector(BaseConnector):
     """
     def __init__(self, connector_id: str, car_connectivity: CarConnectivity, config: Dict) -> None:
         BaseConnector.__init__(self, connector_id=connector_id, car_connectivity=car_connectivity, config=config, log=LOG, api_log=LOG_API)
-        self._healthy: bool = False
 
         self._background_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
 
-        self.connected: BooleanAttribute = BooleanAttribute(name="connected", parent=self, tags={'connector_custom'})
+        self.connection_state: EnumAttribute = EnumAttribute(name="connection_state", parent=self, value_type=ConnectionState,
+                                                             value=ConnectionState.DISCONNECTED, tags={'connector_custom'})
         self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self, tags={'connector_custom'})
         self.interval.minimum = timedelta(seconds=180)
         self.interval._is_changeable = True  # pylint: disable=protected-access
@@ -119,7 +120,7 @@ class Connector(BaseConnector):
         self._background_thread = threading.Thread(target=self._background_loop, daemon=False)
         self._background_thread.name = 'carconnectivity.connectors.tronity-background'
         self._background_thread.start()
-        self._healthy = True
+        self.healthy._set_value(value=True)  # pylint: disable=protected-access
 
     def _background_loop(self) -> None:
         self._stop_event.clear()
@@ -132,7 +133,7 @@ class Connector(BaseConnector):
                     if self.interval.value is not None:
                         interval: float = self.interval.value.total_seconds()
                 except Exception:
-                    self.connected._set_value(value=False)  # pylint: disable=protected-access
+                    self.connection_state._set_value(value=ConnectionState.ERROR)  # pylint: disable=protected-access
                     if self.interval.value is not None:
                         interval: float = self.interval.value.total_seconds()
                     raise
@@ -150,10 +151,10 @@ class Connector(BaseConnector):
                 self._stop_event.wait(interval)
             except Exception as err:
                 LOG.critical('Critical error during update: %s', traceback.format_exc())
-                self._healthy = False
+                self.healthy._set_value(value=False)  # pylint: disable=protected-access
                 raise err
             else:
-                self.connected._set_value(value=True)  # pylint: disable=protected-access
+                self.connection_state._set_value(value=ConnectionState.CONNECTED)  # pylint: disable=protected-access
                 self._stop_event.wait(interval)
 
     def persist(self) -> None:
@@ -442,5 +443,5 @@ class Connector(BaseConnector):
             raise CommandError(f'Could not start/stop charging ({command_response.status_code}: {command_response.text})')
         return command_arguments
 
-    def is_healthy(self) -> bool:
-        return self._healthy and super().is_healthy()
+    def get_name(self) -> str:
+        return "Tronity Connector"
