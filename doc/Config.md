@@ -17,6 +17,7 @@ These are the valid options for the Tronity Connector
                     "interval": 300, // Interval in which the server is checked in seconds
                     "netrc": "~/.netr", // netrc file if to be used for passwords
                     "api_log_level": "debug", // Show debug information regarding the API
+                    "hide_vins": ["19XFB2F90CE040211", "1G2ZH35N074252067"] // Don't fetch these vins
                 }
             }
         ],
