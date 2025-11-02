@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 - No unreleased changes so far
 
+## [0.6.4] - 2025-11-02
+### Changed
+- Updated some dependencies
+
 ## [0.6.3] - 2025-06-20
 ### Fixed
 - Fixes bug that registers hooks several times, causing multiple calls to the servers
@@ -49,7 +53,8 @@ All notable changes to this project will be documented in this file.
 ## [0.1] - 2025-02-02
 Initial release, let's go and give this to the public to try out...
 
-[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.6.3...HEAD
+[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.6.4...HEAD
+[0.6.4]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.4
 [0.6.3]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.3
 [0.6.2]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.2
 [0.6.1]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.1
