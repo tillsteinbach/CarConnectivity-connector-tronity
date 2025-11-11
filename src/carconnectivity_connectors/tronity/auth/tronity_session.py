@@ -128,7 +128,11 @@ class TronitySession(OAuth2Session):
             self.login()
             #raise AuthenticationError('Refreshing tokens failed: Server requests new authorization')
         elif token_response.status_code in (requests.codes['internal_server_error'], requests.codes['service_unavailable'], requests.codes['gateway_timeout']):
-            raise TemporaryAuthenticationError('Token could not be refreshed due to temporary Tronity failure: {tokenResponse.status_code}')
+            message: str = ''
+            response_json = token_response.json()
+            if 'message' in response_json:
+                message = ': ' + response_json['message']
+            raise TemporaryAuthenticationError(f'Token could not be refreshed due to temporary Tronity failure: {token_response.status_code}{message}')
         elif token_response.status_code == requests.codes['created']:
             # parse new tokens from response
             self.parse_from_body(token_response.text)
