@@ -49,8 +49,9 @@ class Connector(BaseConnector):
     Attributes:
         max_age (Optional[int]): Maximum age for cached data in seconds.
     """
-    def __init__(self, connector_id: str, car_connectivity: CarConnectivity, config: Dict) -> None:
-        BaseConnector.__init__(self, connector_id=connector_id, car_connectivity=car_connectivity, config=config, log=LOG, api_log=LOG_API)
+    def __init__(self, connector_id: str, car_connectivity: CarConnectivity, config: Dict, initialization: Optional[Dict] = None) -> None:
+        BaseConnector.__init__(self, connector_id=connector_id, car_connectivity=car_connectivity, config=config, log=LOG, api_log=LOG_API,
+                               initialization=initialization)
 
         self._background_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -227,7 +228,8 @@ class Connector(BaseConnector):
                     seen_vehicle_vins.add(vehicle_dict['vin'])
                     vehicle: Optional[TronityElectricVehicle] = garage.get_vehicle(vehicle_dict['vin'])  # pyright: ignore[reportAssignmentType]
                     if not vehicle:
-                        vehicle = TronityElectricVehicle(vin=vehicle_dict['vin'], garage=garage, managing_connector=self)
+                        vehicle = TronityElectricVehicle(vin=vehicle_dict['vin'], garage=garage, managing_connector=self,
+                                                         initialization=garage.get_initialization(vehicle_dict['vin']))
                         garage.add_vehicle(vehicle_dict['vin'], vehicle)
 
                     captured_at = None
@@ -306,7 +308,7 @@ class Connector(BaseConnector):
             if 'level' in data and data['level'] is not None:
                 drive: Optional[ElectricDrive] = vehicle.get_electric_drive()
                 if drive is None:
-                    drive = ElectricDrive(drive_id='primary', drives=vehicle.drives)
+                    drive = ElectricDrive(drive_id='primary', drives=vehicle.drives, initialization=vehicle.drives.get_initialization('primary'))
                     drive.type._set_value(GenericDrive.Type.ELECTRIC)  # pylint: disable=protected-access
                     vehicle.drives.add_drive(drive)
 
