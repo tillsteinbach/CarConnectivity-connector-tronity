@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 - No unreleased changes so far
 
+## [0.7.1] - 2026-01-11
+### Fixed
+- Fixes compatibility with CarConnectivity version 0.11.5
+
 ## [0.7] - 2026-01-04
 ### Added
 - Support for initializing attributes on startup form static entries in the configuration
@@ -59,7 +63,8 @@ Note: This connector is required for compatibility with CarConnectivity version 
 ## [0.1] - 2025-02-02
 Initial release, let's go and give this to the public to try out...
 
-[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.7...HEAD
+[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7.1
 [0.7]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7
 [0.6.4]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.4
 [0.6.3]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.6.3
