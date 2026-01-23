@@ -19,7 +19,6 @@ from carconnectivity.drive import ElectricDrive, GenericDrive
 from carconnectivity.units import Power, Length
 from carconnectivity.charging import ChargingConnector, Charging
 from carconnectivity.attributes import DurationAttribute, EnumAttribute
-from carconnectivity.commands import Commands
 from carconnectivity.command_impl import ChargingStartStopCommand
 from carconnectivity.enums import ConnectionState
 
@@ -61,8 +60,6 @@ class Connector(BaseConnector):
         self.interval: DurationAttribute = DurationAttribute(name="interval", parent=self, tags={'connector_custom'})
         self.interval.minimum = timedelta(seconds=180)
         self.interval._is_changeable = True  # pylint: disable=protected-access
-
-        self.commands: Commands = Commands(parent=self)
 
         LOG.info("Loading tronity connector with config %s", config_remove_credentials(config))
 
