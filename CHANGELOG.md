@@ -72,7 +72,7 @@ Note: This connector is required for compatibility with CarConnectivity version 
 Initial release, let's go and give this to the public to try out...
 
 [unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.7.3...HEAD
-[0.7.3]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/compare/v0.7.2...v0.7.3
+[0.7.3]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7.3
 [0.7.2]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7.2
 [0.7.1]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7.1
 [0.7]: https://github.com/tillsteinbach/CarConnectivity-connector-tronity/releases/tag/v0.7
