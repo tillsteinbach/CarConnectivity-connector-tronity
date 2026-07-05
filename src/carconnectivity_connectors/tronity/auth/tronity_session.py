@@ -68,7 +68,8 @@ class TronitySession(OAuth2Session):
         # parse token from response body
         token = token_response.json()      
         
-        self.token = self.parse_from_body(token_response.text)
+        token_response.raise_for_status()
+        self.token = token_response.json()
         return token
 
     def refresh_tokens(
